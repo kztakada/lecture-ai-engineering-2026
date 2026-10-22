@@ -16,6 +16,10 @@
       "documentationUrl": "https://aistudio.google.com/apikey"
     }
   },
+  "runArgs": [
+    "--env-file",
+    "${localWorkspaceFolder}/.env"
+  ],
   "postCreateCommand": "pipx install uv && uv sync --frozen",
   "customizations": {
     "vscode": {
