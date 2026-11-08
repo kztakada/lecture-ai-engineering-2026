@@ -61,6 +61,17 @@ def test_quiz_is_generated_for_lecture2():
     assert quiz["answer"] == expected["definition"]
 
 
+def test_learning_log_is_saved(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "LEARNING_LOG_DIR", tmp_path)
+
+    result = tools.save_learning_log("今日の学び")
+
+    logs = list(tmp_path.glob("*.md"))
+    assert len(logs) == 1
+    assert logs[0].read_text(encoding="utf-8") == "今日の学び"
+    assert str(logs[0]) in result
+
+
 def test_all_tools_handle_dummy_arguments_without_api_key():
     """全ツールがAPIキーなしで、存在しない回や空の入力を処理できること。"""
     assert "検索語が空です" in tools.search_glossary("")

@@ -9,7 +9,8 @@ from pydantic_ai import DeferredToolRequests
 from pydantic_ai.messages import ToolCallPart, ToolReturnPart
 from pydantic_ai.models.test import TestModel
 
-from app.agent import agent
+from app.agent import agent, run_with_approval
+from app import tools
 
 BASE_TOOLS = {"search_glossary", "get_lecture_summary"}
 
@@ -42,3 +43,19 @@ def test_glossary_result_reaches_the_model():
         result = agent.run_sync("RAGとは？")
     returns = _parts(result, ToolReturnPart)
     assert returns and returns[0].tool_name == "search_glossary"
+
+
+def test_approval_is_used_to_resume_save_learning_log(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "LEARNING_LOG_DIR", tmp_path)
+    model = TestModel(call_tools=["save_learning_log"])
+
+    def approve():
+        model.call_tools = []
+        return "y"
+
+    monkeypatch.setattr("builtins.input", lambda _: approve())
+    with agent.override(model=model):
+        result = run_with_approval(agent, "学習ログを保存して", model)
+
+    assert result.output
+    assert list(tmp_path.glob("*.md"))
