@@ -46,3 +46,23 @@ def test_default_question_of_lecture1_is_answerable_from_glossary():
     assert "3レベル" in DEFAULT_QUESTION
     hits = json.loads(tools.search_glossary("3レベル"))
     assert hits[0]["term"] == "宿題の3レベル"
+
+
+def test_quiz_is_generated_for_lecture2():
+    """第2回の確認問題が生成されること。"""
+    quiz = json.loads(tools.make_quiz(2))
+    lecture_terms = [term for term in tools.load_glossary() if term["lecture"] == 2]
+
+    assert set(quiz) == {"question", "answer"}
+    assert quiz["question"].startswith("「")
+    assert quiz["question"].endswith("」の意味は？")
+    selected_term = quiz["question"][1:-6]
+    expected = next(term for term in lecture_terms if term["term"] == selected_term)
+    assert quiz["answer"] == expected["definition"]
+
+
+def test_all_tools_handle_dummy_arguments_without_api_key():
+    """全ツールがAPIキーなしで、存在しない回や空の入力を処理できること。"""
+    assert "検索語が空です" in tools.search_glossary("")
+    assert "まだありません" in tools.get_lecture_summary(0)
+    assert "用語が見つかりません" in tools.make_quiz(0)
