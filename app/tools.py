@@ -5,11 +5,13 @@
 """
 
 import json
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 import random
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LEARNING_LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -100,3 +102,16 @@ def make_quiz(lecture: int) -> str:
         },
         ensure_ascii=False,
     )
+
+
+def save_learning_log(content: str) -> str:
+    """学習の記録を learning_log/ フォルダに保存する。
+
+    学習内容を後から振り返るために保存したいときに使う。
+    保存は取り消しにくいため、実行前にアプリケーション側で利用者の確認が必要なツールとして登録する。
+    """
+    LEARNING_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    filename = datetime.now().strftime("%Y%m%d-%H%M%S-%f.md")
+    path = LEARNING_LOG_DIR / filename
+    path.write_text(content, encoding="utf-8")
+    return f"学習ログを保存しました: {path}"
